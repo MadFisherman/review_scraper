@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>parser</title>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="/style.css">
+<!-- Optional theme -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+ </head>
+ <body>
+	<div class="someclass">
+	<div class="row">
+	<form method="POST">
+		<div class="col-lg-6">
+			<div class="input-group" id="btn">
+			  <span class="input-group-addon">@</span>
+			  <input type="text" class="form-control" placeholder="url" name="parse_url">
+			</div>
+			<div class="btn-group" id="btn2">
+		  	<button class="btn btn-default btn-lg dropdown-toggle lg-offset-3" type="button submit" name="butt"> Большая кнопка
+		 	</button>
+		</div>
+	</form>
+	</div>
+	</div>
+
+	<h2 class="item-name">Название товара</h2>
+	<h4 class="item-category">Категория товара</h4>
+	<div class="paste-containter"></div>
+	<div class="cart">
+		<div class="item">
+			<div class="name">item 1</div>
+		</div>
+		
+		<div class="item">
+			<div class="name">item 2</div>
+		</div>
+		
+		<div class="item">
+			<div class="name">item 3</div>
+		</div>
+	</div>
+	<script>
+		var stats_config = {
+			cart_item_name_selector: '.cart .item .name',
+			page_item_name_selector: '.item-name',
+			page_item_category_selector: '.item-category',
+			paste_container_selector: '.paste-containter',
+		};
+	</script>
+	<script src="script.js"></script>
+	<script src="script2.js"></script>
+	</div>
+</body>
+</html>
+<?php
+require_once "src.php";
+require "handler.php";
+?>
