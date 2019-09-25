@@ -5,7 +5,7 @@
 	var paste_container = document.querySelectorAll(stats_config.paste_container_selector ? stats_config.paste_container_selector : '')[0];
 
 	var xhr = new XMLHttpRequest();
-	xhr.open('POST', 'handler.php', true);
+	xhr.open('POST', 'https://staging.realytics.ru/reviews/handler.php', true);
 	
 	xhr.onreadystatechange = function () {
         if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {

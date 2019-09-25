@@ -8,9 +8,8 @@ header('Content-Type: text/html; charset=utf-8');
 
 function product_handler($input)
 {
-	$postgresql = "host=localhost dbname=bender user=bender password=bender";
+	//$postgresql = "host=localhost dbname=bender user=bender password=bender";
 	$current_product = $input['item_name'];
-	echo $current_product;
 	$dbconn = pg_connect(Connect::$postgresql) or die();
 	$query = "SELECT * FROM reviews INNER JOIN reviews_products as rp ON reviews.id_review = rp.id_review INNER JOIN products AS p ON rp.id_product = p.id_product WHERE name = '" . $current_product . "' AND reviews.is_translated = TRUE";
 	$result = pg_query($dbconn, $query);
@@ -37,7 +36,7 @@ function product_handler($input)
 }
 function cookie_handler($input)
 {
-
+	
 }
 function parser_handler()
 {
