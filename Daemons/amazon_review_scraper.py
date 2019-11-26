@@ -4,27 +4,30 @@ from lxml import html
 from json import dump,loads
 from requests import get
 import json
+import re
 from re import sub
 from dateutil import parser as dateparser
 from time import sleep
 import math
 import sys
 import psycopg2
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def ParseReviews(asin, amazon_url):
+def ParseReviews(asin, amazon_url, id_product):
     headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'}
     connection = psycopg2.connect(dbname='bender', user='bender', password='bender', host='localhost')
     cursor = connection.cursor()
+    parced = 0
+    print("in parse")
     for i in range(5):
         response = get(amazon_url, headers = headers, verify=False, timeout=30)
         if response.status_code == 404:
             return {"url": amazon_url, "error": "page not found"}
         if response.status_code != 200:
             continue
-        
         # Removing the null bytes from the response.
         cleaned_response = response.text.replace('\x00', '')
-        
         parser = html.fromstring(cleaned_response)
         XPATH_AGGREGATE = '//span[@id="acrCustomerReviewText"]'
         XPATH_REVIEW_SECTION_1 = '//div[contains(@id,"reviews-summary")]'
@@ -110,27 +113,22 @@ def ParseReviews(asin, amazon_url):
 
                             }
             cursor.execute("SELECT exists(SELECT * FROM reviews WHERE review_text = %s)", (full_review_text,))
-            print(cursor)
             if not cursor.fetchone()[0]:
+                parced = 1;
                 site = 1
-                query = "INSERT INTO reviews (id_site, is_translated, review_posted_date, review_header, review_text, review_rating, review_author, id_order, review_comment_count) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                query = "INSERT INTO reviews (id_site, is_translated, review_posted_date, review_header, review_text, review_rating, review_author, id_order, review_comment_count) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_review"
                 #проверка сайта не нужна, потому что этот скрипт рассчитан конкретно на амазон, надо еще будет подумать о разделении скриптов
                 data = (site, False, review_posted_date, review_header, full_review_text, review_rating, author, 0, review_comments)
                 cursor.execute(query, data)
-            reviews_list.append(review_dict)
-
-        data = {
-                    'ratings': ratings_dict,
-                    'reviews': reviews_list,
-                    'url': amazon_url,
-                    'name': product_name,
-                    'price': product_price
-                
-                }
+                id_review = cursor.fetchone()[0]
+                print(id_review)
+                query = "INSERT INTO reviews_products (id_review, id_product) VALUES (%s, %s)"
+                data = (id_review, id_product)
+                cursor.execute(query, data)
         connection.commit()
         cursor.close()
         connection.close()
-        return data
+        return parced
 
     return {"error": "failed to process the page", "url": amazon_url}
             
@@ -143,28 +141,30 @@ def ParsePageCount(amazon_url):
         if response.status_code != 200:
             continue
 
-        cleaned_response = response.text.replace('\x00', '')
-        parser = html.fromstring(cleaned_response)
-        XPATH_REVIEWS_COUNT = './/span[@data-hook="total-review-count"]//text()'
-        raw_review_count = parser.xpath(XPATH_REVIEWS_COUNT)
-        page_count = math.ceil(float(raw_review_count[0].replace(',', '')) / 10)
+    cleaned_response = response.text.replace('\x00', '')
+    parser = html.fromstring(cleaned_response)
+    XPATH_REVIEWS_COUNT = './/div[@data-hook="total-review-count"]/span/text()'
+    raw_review_count = parser.xpath(XPATH_REVIEWS_COUNT)
+    page_count = re.findall('(\d+)', raw_review_count[0])
+    page_count = math.ceil(float(page_count[0])/10)
+    #page_count = math.ceil(float(raw_review_count[0].replace(',', '')) / 10)
     return page_count
 
-def ReadAsin(asin):
+def ReadAsin(asin, id_product):
     # Add your own ASINs here
     extracted_data = []
     page_number = 1
-    amazon_url = "http://www.amazon.com/product-reviews/" + asin
+    amazon_url = "https://www.amazon.com/product-reviews/" + asin
     total_page_count = ParsePageCount(amazon_url) + 1
     while page_number < total_page_count:
             try:
                 if page_number == 1:
-                    print("Downloading and processing page http://www.amazon.com/product-reviews/" + asin)
-                    extracted_data.append(ParseReviews(asin, amazon_url))
+                    print("Downloading and processing page https://www.amazon.com/product-reviews/" + asin)
+                    extracted_data.append(ParseReviews(asin, amazon_url, id_product))
                 else:
-                    amazon_url = "http://www.amazon.com/product-reviews/" + asin + "/ref=cm_cr_getr_d_paging_btm_next_" + str(page_number) + "?ie=UTF8&reviewerType=all_reviews&pageNumber=" + str(page_number)
+                    amazon_url = "https://www.amazon.com/product-reviews/" + asin + "/ref=cm_cr_getr_d_paging_btm_next_" + str(page_number) + "?ie=UTF8&reviewerType=all_reviews&pageNumber=" + str(page_number)
                     print("Next page http://www.amazon.com/product-reviews/" + asin + "/ref=cm_cr_getr_d_paging_btm_next_" + str(page_number) + "?ie=UTF8&reviewerType=all_reviews&pageNumber=" + str(page_number))
-                    extracted_data.append(ParseReviews(asin, amazon_url))
+                    extracted_data.append(ParseReviews(asin, amazon_url, id_product))
                 page_number += 1
                 sleep(5)
             except Exception:
@@ -174,4 +174,4 @@ def ReadAsin(asin):
     f.close()
 
 if __name__ == "__main__":
-    ReadAsin(sys.argv[1])
+    ReadAsin(sys.argv[1], sys.argv[2])

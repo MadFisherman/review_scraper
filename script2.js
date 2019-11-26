@@ -6,13 +6,13 @@
 
 	var xhr = new XMLHttpRequest();
 	xhr.open('POST', 'https://staging.realytics.ru/reviews/handler.php', true);
-	
+
 	xhr.onreadystatechange = function () {
         if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
             paste_container.innerHTML = xhr.responseText;
         };
     };
-	
+
 	xhr.send(JSON.stringify({
 		item_name: item_name,
 		item_category: item_category,

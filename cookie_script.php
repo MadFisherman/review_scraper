@@ -42,9 +42,9 @@ function config_create($host_name)
 		case 'staging.realytics.ru' :
 			return "{
 			cart_item_name_selector: '.cart .item .name',
-			page_item_name_selector: '.parsing-item-name',
-			page_item_category_selector: '.parsing-item-category',
-			paste_container_selector: '.reviews-container',
+			page_item_name_selector: '.sel-product-title',
+			page_item_category_selector: '.c-breadcrumbs__item-text',
+			paste_container_selector: '.review-container',
 		}";
 		default :
 			return "{
@@ -53,6 +53,6 @@ function config_create($host_name)
 			page_item_category_selector: '.item-category',
 			paste_container_selector: '.paste-containter',
 		}";
-	}	
+	}
 }
 ?>

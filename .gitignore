@@ -1,0 +1,14 @@
+*.mp3
+*.mp4
+*.png
+*.jpg
+/index?.php
+/index*.php
+/logfile
+/Mi-band-2_files/*
+/Mi_getreviews.php
+/Mi.php
+/post_script.php
+/Xiaomi Mi Band 2_files/*
+/Daemons/*.json
+/Daemons/scr.php

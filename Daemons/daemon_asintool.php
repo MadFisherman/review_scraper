@@ -18,10 +18,10 @@ while(TRUE) {
 	$dbconn = pg_connect($postgresql) or die('Не удалось соединиться: ' . pg_last_error());
 
 	$status = getProducts($headers, $dbconn);
-	$query = 'SELECT name FROM products WHERE in_progress = 1';
+	$query = 'SELECT name FROM products WHERE in_progress = 0';
 	$result = pg_query($dbconn, $query);
 	$rows = pg_fetch_all($result);
-	if(!$rows) {
+	if($rows) {
 		//deleteProducts($headers); //пока что не работает видать, выводит список всех товаров
 		importProducts($dbconn, $headers);
 		initiateSearch($headers);
@@ -32,7 +32,10 @@ while(TRUE) {
 function getProducts($headers, $dbconn) {
 	$status = curlSend($headers, name2ASIN::$status_url , 0);
 	$status = json_decode($status, TRUE);
-	if($status['attributes']['percentage'] == 100) {
+	//foreach($status as $k => $v) {
+	//echo 'text: ' . $k . ' => ' . $v . ';<br>';
+	//}
+	if($status['percentage'] == 100) {
 		$response = curlSend($headers, name2ASIN::$get_url, 0);
 		$response = json_decode($response, TRUE);
 		foreach($response['data'] as $product) {
@@ -64,11 +67,11 @@ function deleteProducts($headers) {
 
 	curl_close($curl);
 
-	if ($err) {
+	/*if ($err) {
 		echo "cURL Error #:" . $err;
 	} else {
 		echo $response;
-	}
+	}*/
 }
 function importProducts($dbconn, $headers) {
 	$query = 'SELECT name FROM products WHERE is_asined = 0 AND in_progress = 0';

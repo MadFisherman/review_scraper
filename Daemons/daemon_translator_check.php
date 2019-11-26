@@ -26,10 +26,20 @@ while(TRUE) {
 		}
 		foreach($translated_arr as $k => $v)
 		{
+			$v = text_checking($v);
 			pg_update($dbconn, "reviews", ['review_translated_text' => $v, 'id_order' => 0, 'is_translated' => 1], ['id_review' => $k]);
 		}
 	}
 	sleep(3600);
+}
+function text_checking($text) {
+	//функция проверки текста на наличие лишних тегов и мнемоников
+	//так же ищет звездочки и добавляет перенос строки
+	$pattern = array("/<[a-zA-Zа-яёА-ЯЁ]{1,4}>?/", "/&ls?aquo;/", "/&rs?aquo;/", "/&quot;/");
+	$replace = array("", "«", "»", '"');
+	$text = preg_replace($pattern, $replace, $text);
+	$text = preg_replace("/\*/", "<br>*", $text);
+	return $text;
 }
 function get_order($order_id)
 {

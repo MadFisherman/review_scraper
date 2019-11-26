@@ -3,16 +3,20 @@ $turbotext_apikey = "xa6iuepfnyk8m7t10rvcjbhwo9gdlz5sq243";
 $postgresql = "host=localhost dbname=bender user=bender password=bender";
 
 while(TRUE) {
+	global $turbotext_apikey, $postgresql;
 	$dbconn = pg_connect($postgresql) or die();
 	$query = "SELECT id_review, review_text FROM reviews WHERE is_translated = FALSE";
 	$result = pg_query($dbconn, $query);
 	$rows = pg_fetch_all($result);
+	$total_order_text = "";
 	if($rows){
 		$id_review_arr = [];
 		foreach($rows as $row)
 		{
 			$total_order_text .= '##id' . $row['id_review'] . '<br>' . $row['review_text'] . '<br>';
 			$id_review_arr[] = $row['id_review'];
+			$size = iconv_strlen($total_order_text);
+			if($size > 80000) break;
 		}
 		$current_order_id = create_order($total_order_text);
 		if ($current_order_id)
@@ -31,6 +35,7 @@ function create_order($order_original_text)
 {
 	//Блок отправки даных в турботекст, устанавливаются параметры для перевода
 	//Отправлять будем по одному заказу (группе отзывов)
+	global $turbotext_apikey;
 	$api_key = $turbotext_apikey;
 	$order_size_to = iconv_strlen($order_original_text) + 100;
 	$parameters = [
